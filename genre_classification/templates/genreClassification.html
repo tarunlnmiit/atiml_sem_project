@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en-US">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<style>
+    label {
+        display: inline-block;
+        width: 140px;
+        text-align: right;
+    }
+
+    .head {
+        color: chocolate
+    }
+
+    .mand:before {
+        content: " *";
+        color: red;
+    }
+
+    .err {
+        color: red;
+    }
+
+    ;
+
+    ​
+</style>
+
+<body>
+
+    <div ng-app="genreApp" ng-controller="genreCtrl">
+
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <img src="{% static '/logo.JPG' %}" width="100px" height="50px" />
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Genre Classification</a>
+                </li>
+            </ul>
+        </nav>
+        <br>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <form name="inpForm" ng-submit="predictCall()">
+                        <span style="color: red;float: right;">* Mandatory fields</span>
+                        <div class="row">
+                            <div class="col-sm-6 form-group form-inline" ng-class="{'has-error':inpForm.$submitted && inpForm.train.$error.required}">
+                                <label class="mand">Select book to classify </label>
+                                <select name="train" class="form-control" ng-model="trainTestVal" required>
+                                    <option value="0" selected>Select</option>
+                                    {% for x in queries %}
+                                        <option value="{{x.0}}" selected>{{x.0}} || {{x.1}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-sm-6 form-group form-inline">
+                                <button class="btn btn-success" type="submit">Predict Genre</button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="row" data-ng-if="{{fetched.length}}">
+                <h4 class="head">Classification : </h4>
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Author</th>
+                            <th>Pedicted Genre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for x in fetched %}
+                            <tr>
+                                <td>{{ x.bookName }}</td>
+                                <td>{{ x.author }}</td>
+                                <td>{{ x.genre }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            <div class="row" data-ng-if="evalRes">
+                <h4 class="head">Evaluation Metrics :</h4>
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F-measure</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ evalRes.accuracy }}</td>
+                            <td>{{ evalRes.precision }}</td>
+                            <td>{{ evalRes.recall }}</td>
+                            <td>{{ evalRes.fmeasure }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var app = angular.module('genreApp', []);
+    app.controller('genreCtrl', ["$scope", "$http", function ($scope, $http) {
+
+
+
+        $scope.trainTest = [{ "name": "60-40%", "value": "60-40" }, { "name": "70-30%", "value": "70-30" }, { "name": "80-20%", "value": "80-20" }];
+        $scope.predictCall = function () {
+            $scope.inpForm.$submitted=true;
+            if ($scope.inpForm.$valid) {
+                $scope.inpForm.$submitted=false;
+                var reqData = {
+                    "path": $scope.path,
+                    "trainTest": $scope.trainTestVal.value,
+                    "predictPath": $scope.predictPath
+                };
+                console.log(reqData)
+
+                $scope.fetched = {{ fetched }};
+                $scope.evalRes = {{ evalRes }};
+                $scope.queries = {{ queries }};
+
+
+            }
+        }
+    }]);
+
+</script>
+
+
+
+</html>

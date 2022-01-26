@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+<style>
+    label {
+        display: inline-block;
+        width: 140px;
+        text-align: right;
+    }
+
+    .head {
+        color: chocolate
+    }
+
+    .mand:before {
+        content: " *";
+        color: red;
+    }
+
+    .err {
+        color: red;
+    }
+
+    ;
+
+    ​
+</style>
+
+<body>
+
+    <div ng-app="genreApp" ng-controller="genreCtrl">
+
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <img src="genre_classification/static/logo.JPG" width="100px" height="50px" />
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Genre classification</a>
+                </li>
+             
+            </ul>
+        </nav>
+        <br>
+
+        <div class="container">
+            <form name="inpForm" ng-submit="predictCall(book)" data-ng-init="getQueries()">
+                <span style="color: red;float: right;">* Mandatory fields</span>
+                <div class="row">
+                    <label class="mand">Select Book to classify: </label>
+                    <div class="col-sm-6"
+                        ng-class="{'has-error':inpForm.$submitted && inpForm.train.$error.required}">
+                        <select name="train" class="form-control" ng-model="book"   ng-options="x[0] as x for x in queries" ng-change="clearVal()" required>
+                            <option value="" selected>Select</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-3 form-group form-inline">
+                        <button class="btn btn-success" type="submit">Predict Genre</button>
+                    </div>
+                </div>
+<!--                <div class="row">-->
+<!--                    -->
+<!--                </div>-->
+            </form>
+            <br>
+        <br><br>
+        <br>
+            <div class="row" data-ng-if="prediction">
+                <h4 class="head">Classification: </h4>
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Book Name</th>
+                            <th>Author</th>
+                            <th>True Genre</th>
+                            <th>Predicted Genre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ book }}</td>
+                            <td>{{ author }}</td>
+                            <td>{{ trueVal }}</td>
+                            <td>{{ prediction }}</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var app = angular.module('genreApp', []);
+    app.controller('genreCtrl', ["$scope", "$http", function ($scope, $http) {
+
+        $scope.predictCall = function (val) {
+            console.log(val)
+            $scope.inpForm.$submitted = true;
+            if ($scope.inpForm.$valid) {
+                $scope.inpForm.$submitted = false;
+                var data = {
+                    'query': val
+                };
+                $http.post("http://localhost:8000/result/getprediction", data)
+                    .then(function (response) {
+                        $scope.prediction = response.data.prediction;
+                        $scope.trueVal = response.data.true[0];
+                        $scope.book = response.data.book;
+                        $scope.author = response.data.author;
+                    });
+            }
+        }
+
+        $scope.clearVal= function(){
+            console.log($scope.prediction)
+            $scope.prediction=null;
+        }
+
+
+        $scope.getQueries = function () {
+            console.log("queriess");
+            $http.get("http://localhost:8000/result/")
+                .then(function (response) {
+                    $scope.queries = response.data.queries;
+                    console.log(response);
+                });
+
+        }
+    }]);
+
+</script>
+
+
+
+</html>
